@@ -1,0 +1,43 @@
+@startuml UseCase_COLORS
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam backgroundColor #FAFAFA
+skinparam usecase {
+  BackgroundColor #DDEEFF
+  BorderColor #336699
+}
+
+actor "User" as U
+
+rectangle "COLORS Web Application" {
+  usecase "Login" as UC1
+  usecase "Logout" as UC2
+  usecase "Add Color" as UC3
+  usecase "Search Colors" as UC4
+  usecase "Validate Credentials\n(via MySQL)" as UC5
+  usecase "Store Session Cookie" as UC6
+  usecase "Read Session Cookie\n(on page load)" as UC7
+  usecase "Redirect to Login\n(if unauthenticated)" as UC8
+  usecase "Store Color\n(via MySQL)" as UC9
+  usecase "Query Colors\n(via MySQL)" as UC10
+}
+
+U --> UC1
+U --> UC2
+U --> UC3
+U --> UC4
+
+UC1 ..> UC5 : <<include>>
+UC1 ..> UC6 : <<include>>
+
+UC2 ..> UC7 : <<include>>
+UC3 ..> UC7 : <<include>>
+UC4 ..> UC7 : <<include>>
+
+UC8 ..> UC7 : <<extend>>\nif cookie invalid/expired
+
+UC3 ..> UC9 : <<include>>
+UC4 ..> UC10 : <<include>>
+
+@enduml

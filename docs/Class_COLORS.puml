@@ -1,0 +1,118 @@
+@startuml Class_COLORS
+skinparam backgroundColor #FAFAFA
+skinparam class {
+  BackgroundColor #DDEEFF
+  BorderColor #336699
+  ArrowColor #336699
+}
+skinparam classAttributeIconSize 0
+
+title COLORS Application - Class Diagram
+
+package "Frontend (Browser)" {
+
+  class IndexPage {
+    <<HTML: index.html>>
+    - loginName : input
+    - loginPassword : input
+    - loginResult : span
+    + doLogin() : void
+  }
+
+  class ColorPage {
+    <<HTML: color.html>>
+    - searchText : input
+    - colorText : input
+    - colorSearchResult : span
+    - colorAddResult : span
+    - colorList : p
+    - userName : span
+    + searchColor() : void
+    + addColor() : void
+    + doLogout() : void
+    + readCookie() : void
+  }
+
+  class ClientState {
+    <<JavaScript Global>>
+    + userId : int
+    + firstName : string
+    + lastName : string
+    + urlBase : string
+    + extension : string
+  }
+
+  class CookieManager {
+    <<JavaScript>>
+    + saveCookie() : void
+    + readCookie() : void
+    + doLogout() : void
+  }
+}
+
+package "Backend (PHP API - /LAMPAPI)" {
+
+  class LoginAPI {
+    <<PHP Script: Login.php>>
+    - conn : mysqli
+    + getRequestInfo() : array
+    + sendResultInfoAsJson(obj) : void
+    + returnWithInfo(firstName, lastName, id) : void
+    + returnWithError(err) : void
+  }
+
+  class AddColorAPI {
+    <<PHP Script: AddColor.php>>
+    - conn : mysqli
+    + getRequestInfo() : array
+    + sendResultInfoAsJson(obj) : void
+    + returnWithError(err) : void
+  }
+
+  class SearchColorsAPI {
+    <<PHP Script: SearchColors.php>>
+    - conn : mysqli
+    + getRequestInfo() : array
+    + sendResultInfoAsJson(obj) : void
+    + returnWithInfo(searchResults) : void
+    + returnWithError(err) : void
+  }
+}
+
+package "Database (MySQL - COP4331)" {
+
+  class Users {
+    <<Table>>
+    + Login : VARCHAR
+    + Password : VARCHAR
+    + FirstName : VARCHAR
+    + LastName : VARCHAR
+    __
+    + ID : INT (PK)
+  }
+
+  class Colors {
+    <<Table>>
+    + Name : VARCHAR
+    __
+    + ID : INT (PK)
+    + UserId : INT (FK)
+  }
+}
+
+IndexPage --> ClientState : reads/writes
+IndexPage --> CookieManager : calls saveCookie()
+ColorPage --> ClientState : reads
+ColorPage --> CookieManager : calls readCookie(), doLogout()
+
+IndexPage ..> LoginAPI : POST /Login.php\n{login, password}
+ColorPage ..> AddColorAPI : POST /AddColor.php\n{color, userId}
+ColorPage ..> SearchColorsAPI : POST /SearchColors.php\n{search, userId}
+
+LoginAPI --> Users : SELECT ID, firstName, lastName\nWHERE Login=? AND Password=?
+AddColorAPI --> Colors : INSERT (UserId, Name)
+SearchColorsAPI --> Colors : SELECT Name\nWHERE Name LIKE ? AND UserID=?
+
+Colors }o--|| Users : UserId (FK)
+
+@enduml

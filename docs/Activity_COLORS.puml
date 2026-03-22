@@ -1,0 +1,75 @@
+@startuml Activity_COLORS
+skinparam backgroundColor #FAFAFA
+skinparam activity {
+  BackgroundColor #DDEEFF
+  BorderColor #336699
+  DiamondBackgroundColor #FFF5CC
+  DiamondBorderColor #CC9900
+}
+
+title COLORS Application - Activity Diagram
+
+start
+
+:User visits index.html;
+
+:Enter Username and Password;
+:Click "Do It" (Login);
+
+:POST /Login.php\n{login, password};
+
+:Query Users table\nSELECT ID, firstName, lastName\nWHERE Login=? AND Password=?;
+
+if (User found in DB?) then (yes)
+  :Return {id, firstName, lastName};
+  :Save cookie\n(firstName, lastName, userId)\nExpires in 20 minutes;
+  :Redirect to color.html;
+
+  :color.html loads\nreadCookie() called;
+
+  if (Valid cookie with userId >= 0?) then (yes)
+
+    fork
+      :Search Flow;
+      :Enter search term;
+      :Click "Search Color";
+      :POST /SearchColors.php\n{search, userId};
+      :Query Colors WHERE\nName LIKE %search%\nAND UserID=userId;
+      if (Colors found?) then (yes)
+        :Set colorSearchResult =\n"Color(s) has been retrieved";
+        :Display color list in <p>;
+      else (no)
+        :PHP returns\n{error:"No Records Found"};
+        note right
+          JS only handles status 200
+          with results; error response
+          is not explicitly displayed
+        end note
+      endif
+    fork again
+      :Add Color Flow;
+      :Enter color name;
+      :Click "Add Color";
+      :POST /AddColor.php\n{color, userId};
+      :INSERT into Colors\n(UserId, Name);
+      :Display "Color has been added";
+    fork again
+      :Logout Flow;
+      :Click "Log Out";
+      :Clear cookie\n(expires Jan 1 1970);
+      :Redirect to index.html;
+    end fork
+
+  else (no / expired)
+    :Redirect to index.html;
+  endif
+
+else (no)
+  :Return {id:0, error:"No Records Found"};
+  :Display "User/Password combination incorrect";
+  :Stay on index.html;
+endif
+
+stop
+
+@enduml
