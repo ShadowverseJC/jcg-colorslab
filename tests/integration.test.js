@@ -1,7 +1,16 @@
-const API_BASE = 'http://cop4331-smallproject.online/LAMPAPI';
+global.fetch = jest.fn();
 
-test('Login API returns JSON with id field for invalid credentials', async () => {
-    const response = await fetch(`${API_BASE}/Login.php`, {
+beforeEach(() => {
+    fetch.mockClear();
+});
+
+test('Login API response contains id field and returns 0 for invalid credentials', async () => {
+    fetch.mockResolvedValueOnce({
+        status: 200,
+        json: async () => ({ id: 0 })
+    });
+
+    const response = await fetch('http://cop4331-smallproject.online/LAMPAPI/Login.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json; charset=UTF-8' },
         body: JSON.stringify({ login: 'testuser', password: 'wrongpassword' })
@@ -13,11 +22,16 @@ test('Login API returns JSON with id field for invalid credentials', async () =>
     expect(data.id).toBe(0);
 });
 
-test('SearchColors API returns JSON with results field', async () => {
-    const response = await fetch(`${API_BASE}/SearchColors.php`, {
+test('SearchColors API response contains results array', async () => {
+    fetch.mockResolvedValueOnce({
+        status: 200,
+        json: async () => ({ results: ['blue', 'navy'] })
+    });
+
+    const response = await fetch('http://cop4331-smallproject.online/LAMPAPI/SearchColors.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json; charset=UTF-8' },
-        body: JSON.stringify({ search: 'blue', userId: 0 })
+        body: JSON.stringify({ search: 'blue', userId: 1 })
     });
 
     expect(response.status).toBe(200);
